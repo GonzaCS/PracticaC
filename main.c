@@ -5,8 +5,9 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <string.h>
-
+int tamBuffer=101;
 int B[101];
+
 
 void* productor(void *args){
     int i=0;
@@ -46,15 +47,29 @@ void* productor(void *args){
         }
 
     }
-    for (j=0;j<101;j++){
+    /*for (j=0;j<101;j++){
      printf("%d\n",B[j]);
      
-    }  
+    } */ 
     fclose(file);
 
     pthread_exit(0);
 }
-void* consumidor(void *args){
+void* consumidor(){
+  int suma=0;
+  int  max=0;
+  int min= 100000000;
+  int media;
+  for(int i=0;i<tamBuffer;i++){
+      suma = suma + B[i];
+      if(B[i]>max)
+        max=B[i];
+      if(B[i]>min)
+        min=B[i];
+  }
+  media=suma/tamBuffer;
+
+  
   pthread_exit(0);
   //Aún no hemos implementado el código del primer consumidor
 }
