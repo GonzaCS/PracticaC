@@ -6,13 +6,14 @@
 #include <pthread.h>
 #include <string.h>
 #include <semaphore.h>
+#include <stdbool.h>
 
 sem_t mutex;
 
 int *buffer1;
 int tamBuffer=101;
 int B[101];
-bool finFichero==false;
+bool finFichero=false;
 
 
 void* productor(void *args){
@@ -58,9 +59,9 @@ void* productor(void *args){
      
     } */ 
     fclose(file);
-    finFichero==true;
+    finFichero=true;
     pthread_exit(0);
-}
+};
 void* consumidor(){
   int suma=0;
   int  max=0;
@@ -88,7 +89,7 @@ void* consumidor(){
   printf("El min es:%d\n",min);
    
   pthread_exit(0);
-}
+};
 
 
 struct valoresConsumidor{
@@ -120,4 +121,5 @@ int main(int argc, char* argv[]) {
     pthread_join(consumidorhilo,NULL);
 
     return 0;
-}
+};
+
