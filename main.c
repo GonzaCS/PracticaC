@@ -40,7 +40,7 @@ void* productor(void *args){
           //si es el final de linea dividimos entre 10 para tener el numero que hay en esa linea y lo guardamos en nuestro buffer 
         dato=dato/10;
         if(dato!=0){
-        B[j]=dato;
+        buffer1[j]=dato;
         j=j+1;
         dato=0;
         }
@@ -54,10 +54,10 @@ void* productor(void *args){
         }
 
     }
-    /*for (j=0;j<101;j++){
+    for (j=0;j<101;j++){
      printf("%d\n",B[j]);
      
-    } */ 
+    }  
     fclose(file);
     finFichero=true;
     pthread_exit(0);
@@ -70,15 +70,15 @@ void* consumidor(){
   while(finFichero==true){
   for(int i=0;i<tamBuffer;i++){
         if(i==0){
-        max=B[i];
-        min=B[i];
+        max=buffer1[i];
+        min=buffer1[i];
     }
-      suma = suma + B[i];
-      if(B[i]>max){
-        max=B[i];
+      suma = suma + buffer1[i];
+      if(buffer1[i]>max){
+        max=buffer1[i];
       }
       else{
-        min=B[i];
+        min=buffer1[i];
       }
   }
   media=suma/tamBuffer;
@@ -103,9 +103,10 @@ int mediana;
 int cuartil;
 };
 int main(int argc, char* argv[]) {
+  int tamBuffer=101;
    //Memoria dinámica, falta cambiarla para hacerla funcional en B
-  buffer1=(int*)argv[3];
-  buffer1=(int*)malloc(tamBuffer*sizeof(int));
+  //buffer1=(int*)argv[3];
+  int *buffer1=(int*)malloc(tamBuffer*sizeof(int));
     //iniciador hilo
     pthread_t productorhilo;
     pthread_t consumidorhilo;
