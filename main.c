@@ -5,8 +5,14 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <string.h>
+#include <semaphore.h>
+
+sem_t mutex;
+
+int *buffer1;
 int tamBuffer=101;
 int B[101];
+bool finFichero==false;
 
 
 void* productor(void *args){
@@ -52,7 +58,7 @@ void* productor(void *args){
      
     } */ 
     fclose(file);
-
+    finFichero==true;
     pthread_exit(0);
 }
 void* consumidor(){
@@ -60,18 +66,28 @@ void* consumidor(){
   int  max=0;
   int min= 100000000;
   int media;
+  while(finFichero==true){
   for(int i=0;i<tamBuffer;i++){
-      suma = suma + B[i];
-      if(B[i]>max)
+        if(i==0){
         max=B[i];
-      if(B[i]>min)
         min=B[i];
+    }
+      suma = suma + B[i];
+      if(B[i]>max){
+        max=B[i];
+      }
+      else{
+        min=B[i];
+      }
   }
   media=suma/tamBuffer;
-
-  
+  }
+   //Esto hace lo que quiere hay que mirar porque
+  printf("El max es:%d\n",max);
+  printf("La media es:%d\n",media);
+  printf("El min es:%d\n",min);
+   
   pthread_exit(0);
-  //Aún no hemos implementado el código del primer consumidor
 }
 
 
@@ -86,10 +102,15 @@ int mediana;
 int cuartil;
 };
 int main(int argc, char* argv[]) {
+   //Memoria dinámica, falta cambiarla para hacerla funcional en B
+  buffer1=(int*)argv[3];
+  buffer1=(int*)malloc(tamBuffer*sizeof(int));
     //iniciador hilo
     pthread_t productorhilo;
     pthread_t consumidorhilo;
-
+  //iniciador de semaforo, esto me lo dijo le profe así que será así.
+    //sem_init(&hay_espacio,0,1);
+    //sem_init(&hay_dato,0,1);
     //creador hilo
     pthread_create(&productorhilo,NULL,productor,(void*)NULL);
     pthread_create(&consumidorhilo,NULL,consumidor,(void*)NULL);
