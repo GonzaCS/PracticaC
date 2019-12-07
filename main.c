@@ -48,16 +48,17 @@ void* productor(void *args){
         else{
          dato=dato*10; //para escribir bien el numero multiplicamos por 10 para sumarle el siguiente luego
 
-        //printf("%c",*palabra); 
+          //printf("%c",*palabra); 
           i=i+1;
          }
-        }
+      }
 
     }
-    for (j=0;j<101;j++){
-     printf("%d\n",B[j]);
+    for (int j=0;j<101;j++){
+    printf("%d\n",buffer1[j]);
      
-    }  
+    } 
+    
     fclose(file);
     finFichero=true;
     pthread_exit(0);
@@ -89,7 +90,7 @@ void* consumidor(){
   printf("El min es:%d\n",min);
    
   pthread_exit(0);
-};
+}
 
 
 struct valoresConsumidor{
@@ -106,20 +107,23 @@ int main(int argc, char* argv[]) {
   int tamBuffer=101;
    //Memoria dinámica, falta cambiarla para hacerla funcional en B
   //buffer1=(int*)argv[3];
-  int *buffer1=(int*)malloc(tamBuffer*sizeof(int));
+  buffer1=(int*)malloc(tamBuffer*sizeof(int));
+  
     //iniciador hilo
+
     pthread_t productorhilo;
-    pthread_t consumidorhilo;
+    //pthread_t consumidorhilo;
+
   //iniciador de semaforo, esto me lo dijo le profe así que será así.
     //sem_init(&hay_espacio,0,1);
     //sem_init(&hay_dato,0,1);
     //creador hilo
     pthread_create(&productorhilo,NULL,productor,(void*)NULL);
-    pthread_create(&consumidorhilo,NULL,consumidor,(void*)NULL);
+    //pthread_create(&consumidorhilo,NULL,consumidor,(void*)NULL);
 
 
     pthread_join(productorhilo,NULL);
-    pthread_join(consumidorhilo,NULL);
+    //pthread_join(consumidorhilo,NULL);
 
     return 0;
 };
