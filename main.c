@@ -112,18 +112,18 @@ int main(int argc, char* argv[]) {
     //iniciador hilo
 
     pthread_t productorhilo;
-    //pthread_t consumidorhilo;
+    pthread_t consumidorhilo;
 
   //iniciador de semaforo, esto me lo dijo le profe así que será así.
     //sem_init(&hay_espacio,0,1);
     //sem_init(&hay_dato,0,1);
     //creador hilo
     pthread_create(&productorhilo,NULL,productor,(void*)NULL);
-    //pthread_create(&consumidorhilo,NULL,consumidor,(void*)NULL);
+    pthread_create(&consumidorhilo,NULL,consumidor,(void*)NULL);
 
 
     pthread_join(productorhilo,NULL);
-    //pthread_join(consumidorhilo,NULL);
+    pthread_join(consumidorhilo,NULL);
 
     return 0;
 };
