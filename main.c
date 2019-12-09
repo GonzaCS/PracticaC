@@ -8,13 +8,27 @@
 #include <semaphore.h>
 #include <stdbool.h>
 
-sem_t mutex;
+sem_t mutex_s_vaciar;
+sem_t mutex_s_llenar;
+sem_t hayDato;
+sem_t hayEspacio;
 
 int *buffer1;
-int tamBuffer=101;
-int B[101];
+int tamBuffer=100;
 bool finFichero=false;
+int rango=3000000;
+int numConsumidores=0;
 
+struct valoresConsumidor{
+  //Creación de estructura con la que trabajaremos en cada Hilo consumidor
+int numerodatos;
+int maximodato;
+int minimodato;
+int sumatotal;
+int media;
+int mediana;
+int cuartil;
+};
 
 void* productor(void *args){
     int i=0;
@@ -28,7 +42,7 @@ void* productor(void *args){
       printf("No se ha podido encontrar el");
       exit(1);
     }
-
+    sem_wait(&hayEspacio);
     while(feof(file)!=1){
         fscanf(file,"%c",palabra);
         if((strcmp(palabra,"k")==0) || (strcmp(palabra,"d")==0) ){ //quitamos los caracteres problematicos
@@ -43,22 +57,22 @@ void* productor(void *args){
         buffer1[j]=dato;
         j=j+1;
         dato=0;
+        //sem_wait(&hayEspacio);
         }
      }
         else{
          dato=dato*10; //para escribir bien el numero multiplicamos por 10 para sumarle el siguiente luego
-
-          //printf("%c",*palabra); 
           i=i+1;
          }
       }
-
+    
     }
-    for (int j=0;j<101;j++){
+    // for para ver el contenido del buffer
+    for (int j=0;j<tamBuffer;j++){
     printf("%d\n",buffer1[j]);
      
     } 
-    
+    sem_post(&hayDato);
     fclose(file);
     finFichero=true;
     pthread_exit(0);
@@ -66,10 +80,14 @@ void* productor(void *args){
 void* consumidor(){
   int suma=0;
   int  max=0;
-  int min= 100000000;
-  int media;
+  int  min=0;
+  int media=0;;
+  sem_wait(&hayDato);
   while(finFichero==true){
   for(int i=0;i<tamBuffer;i++){
+    //para saber si el valor tratado esta dentro de nuestro rango
+    if (buffer1[i]<(rango-1)){
+    //por si solo se recorre una vez
         if(i==0){
         max=buffer1[i];
         min=buffer1[i];
@@ -81,45 +99,38 @@ void* consumidor(){
       if(buffer1[i]<min){
         min=buffer1[i];
       }
-  }
-  media=suma/tamBuffer;
-  }
-   //Esto hace lo que quiere hay que mirar porque
+    }
+media=suma/(tamBuffer/numConsumidores);
+}
+}
+sem_post(&hayEspacio);
   printf("El max es:%d\n",max);
+  printf("La suma es:%d\n",suma);
   printf("La media es:%d\n",media);
   printf("El min es:%d\n",min);
-   
   pthread_exit(0);
 }
 
-
-struct valoresConsumidor{
-  //Creación de estructura con la que trabajaremos en cada Hilo consumidor
-int numerodatos;
-int maximodato;
-int minimodato;
-int sumatotal;
-int media;
-int mediana;
-int cuartil;
-};
 int main(int argc, char* argv[]) {
-  int tamBuffer=101;
-   //Memoria dinámica, falta cambiarla para hacerla funcional en B
-  //buffer1=(int*)argv[3];
+  int tamBuffer= (int) argv[3];
+  int numConsumidores=(int) argv[4];
+  rango = rango/numConsumidores;
+
+   //Memoria dinámica,
   buffer1=(int*)malloc(tamBuffer*sizeof(int));
   
     //iniciador hilo
-
     pthread_t productorhilo;
     pthread_t consumidorhilo;
 
   //iniciador de semaforo, esto me lo dijo le profe así que será así.
-    //sem_init(&hay_espacio,0,1);
-    //sem_init(&hay_dato,0,1);
+    sem_init(&hayEspacio,0,tamBuffer);
+    sem_init(&hayDato,0,0);
+    sem_init(&mutex_s_llenar,0,1);
+    sem_init(&mutex_s_vaciar,0,1);
     //creador hilo
     pthread_create(&productorhilo,NULL,productor,(void*)NULL);
-    pthread_create(&consumidorhilo,NULL,consumidor,(void*)NULL);
+    pthread_create(&consumidorhilo,NULL,consumidor,(void*) NULL);
 
 
     pthread_join(productorhilo,NULL);
