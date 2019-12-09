@@ -73,12 +73,12 @@ void* consumidor(){
         if(i==0){
         max=buffer1[i];
         min=buffer1[i];
-    }
+        }
       suma = suma + buffer1[i];
       if(buffer1[i]>max){
         max=buffer1[i];
       }
-      else{
+      if(buffer1[i]<min){
         min=buffer1[i];
       }
   }
