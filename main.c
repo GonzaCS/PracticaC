@@ -10,7 +10,7 @@
 #include <ctype.h>
 
 
-sem_t mutex_s_vaciar;
+sem_t mutex_Buffer;
 sem_t hayDato;
 sem_t hayEspacio;
 
@@ -44,8 +44,9 @@ void* productor(void *args){
       printf("No se ha podido encontrar el");
       exit(1);
     }
-    sem_wait(&hayEspacio);
+    
     while(feof(file)!=1){
+      sem_wait(&hayEspacio);
         fscanf(file,"%c",palabra);
         //if((strcmp(palabra,"d")==0)||(strcmp(palabra,"d")==0))
         if((isdigit(palabra))==0){ //quitamos los caracteres problematicos
@@ -57,7 +58,8 @@ void* productor(void *args){
         dato=dato/10;
         if(dato!=0){
         buffer1[j]=dato;
-        j=j+1;
+        sem_post(&hayDato);
+        j=(j+1)%tamBuffer;
         dato=0;
         //sem_wait(&hayEspacio);
         }
@@ -66,8 +68,9 @@ void* productor(void *args){
           
          }
       }
+
     }
-    sem_post(&hayDato);
+    
     // for para ver el contenido del buffer
     for (int j=0;j<tamBuffer;j++){
     printf("%d\n",buffer1[j]);
@@ -83,28 +86,29 @@ void* consumidor(void* arg){
   int  max=0;
   int  min=0;
   int media=0;;
-  sem_wait(&hayDato);
-  //while(finFichero==true){
-  for(int i=0;i<tamBuffer;i++){
+  int i=0;
+  while(true){
+    sem_wait(&hayDato);
     //para saber si el valor tratado esta dentro de nuestro rango
-    sem_wait(&mutex_s_vaciar);
-    if (buffer1[i]<(rango-1)){
+    sem_wait(&mutex_Buffer);
+    int datob=buffer1[i];
+    sem_post(&mutex_Buffer);
+    if (datob<(rango-1)){
     //por si solo se recorre una vez
         if(i==0){
-        max=buffer1[i];
-        min=buffer1[i];
+        max=datob;
+        min=datob;
         }
-      suma = suma + buffer1[i];
-      if(buffer1[i]>max){
-        max=buffer1[i];
+      suma = suma + datob;
+      if(datob>max){
+        max=datob;
       }
-      if(buffer1[i]<min && (min!=0)){
-        min=buffer1[i];
+      if(datob<min && (min!=0)){
+        min=datob;
       }
     }
 media=suma/(tamBuffer/numConsumidores);
 }
-//}
 sem_post(&hayEspacio);
   printf("El max es:%d\n",max);
   printf("La suma es:%d\n",suma);
@@ -137,15 +141,20 @@ int main(int argc, char* argv[]) {
   //iniciador de semaforo, esto me lo dijo el profe así que será así.
     sem_init(&hayEspacio,0,tamBuffer);
     sem_init(&hayDato,0,0);
-    sem_init(&mutex_s_vaciar,0,1);
+    sem_init(&mutex_Buffer,0,1);
 
     //creador hilo
-    
-    pthread_create(&productorhilo,NULL,productor,(void*)NULL);
-  //for(int i=0;i<numConsumidores;i++){
-    id=id+1;
-    pthread_create(&consumidorhilo,NULL,consumidor,(void*)&id);
   
+  int id[numConsumidores];
+  for(int i=0;i<numConsumidores;i++){
+    id[i]=i;
+  }
+    pthread_create(&productorhilo,NULL,productor,(void*)NULL);
+   
+
+  for(int i=0;i<numConsumidores;i++){
+    pthread_create(&consumidorhilo,NULL,consumidor,(void*)&id[i]);
+  }
 
     pthread_join(productorhilo,NULL);
     //pthread_join(consumidorhilo,NULL);
