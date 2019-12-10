@@ -9,6 +9,7 @@
 #include <stdbool.h>
 #include <ctype.h>
 
+
 sem_t mutex_s_vaciar;
 sem_t hayDato;
 sem_t hayEspacio;
@@ -18,7 +19,7 @@ int tamBuffer=100;
 bool finFichero=false;
 int rango=3000000;
 int numConsumidores=0;
-int id;
+int* id;
 
 struct valoresConsumidor{
   //Creación de estructura con la que trabajaremos en cada Hilo consumidor
@@ -75,7 +76,8 @@ void* productor(void *args){
     pthread_exit(0);
 };
 void* consumidor(void* arg){
-  int *i = (int *)arg;
+  int *z = (int *)arg;
+  rango=(int)z*rango;
   int suma=0;
   int  max=0;
   int  min=0;
@@ -123,6 +125,7 @@ int main(int argc, char* argv[]) {
     return 0;
   }
   */
+  numConsumidores=1;
   rango = rango/numConsumidores;
    //Memoria dinámica,
   buffer1=(int*)malloc(tamBuffer*sizeof(int));
@@ -130,7 +133,7 @@ int main(int argc, char* argv[]) {
     //iniciador hilo
     pthread_t productorhilo;
     pthread_t consumidorhilo;
-  //iniciador de semaforo, esto me lo dijo le profe así que será así.
+  //iniciador de semaforo, esto me lo dijo el profe así que será así.
     sem_init(&hayEspacio,0,tamBuffer);
     sem_init(&hayDato,0,0);
     sem_init(&mutex_s_vaciar,0,1);
@@ -138,13 +141,13 @@ int main(int argc, char* argv[]) {
     //creador hilo
     
     pthread_create(&productorhilo,NULL,productor,(void*)NULL);
-  for(int i=0;i<numConsumidores;i++){
+  //for(int i=0;i<numConsumidores;i++){
     id=id+1;
     pthread_create(&consumidorhilo,NULL,consumidor,(void*)id);
-  }
+  
 
     pthread_join(productorhilo,NULL);
     pthread_join(consumidorhilo,NULL);
-    return 0;
+    return (0);
 };
 
