@@ -47,7 +47,8 @@ void* productor(void *args){
     sem_wait(&hayEspacio);
     while(feof(file)!=1){
         fscanf(file,"%c",palabra);
-        if(!(isdigit(palabra))){ //quitamos los caracteres problematicos
+        //if((strcmp(palabra,"d")==0)||(strcmp(palabra,"d")==0))
+        if((isdigit(palabra))==0){ //quitamos los caracteres problematicos
         }else{
         int numero =atoi(palabra);    //para transformar de char a int
         dato = dato + numero;
@@ -143,11 +144,11 @@ int main(int argc, char* argv[]) {
     pthread_create(&productorhilo,NULL,productor,(void*)NULL);
   //for(int i=0;i<numConsumidores;i++){
     id=id+1;
-    pthread_create(&consumidorhilo,NULL,consumidor,(void*)id);
+    pthread_create(&consumidorhilo,NULL,consumidor,(void*)&id);
   
 
     pthread_join(productorhilo,NULL);
-    pthread_join(consumidorhilo,NULL);
+    //pthread_join(consumidorhilo,NULL);
     return (0);
 };
 
