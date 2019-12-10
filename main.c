@@ -96,7 +96,7 @@ void* consumidor(){
       if(buffer1[i]>max){
         max=buffer1[i];
       }
-      if(buffer1[i]<min){
+      if(buffer1[i]<min && (min!=0)){
         min=buffer1[i];
       }
     }
@@ -128,7 +128,9 @@ int main(int argc, char* argv[]) {
     sem_init(&hayDato,0,0);
     sem_init(&mutex_s_llenar,0,1);
     sem_init(&mutex_s_vaciar,0,1);
+
     //creador hilo
+    
     pthread_create(&productorhilo,NULL,productor,(void*)NULL);
     pthread_create(&consumidorhilo,NULL,consumidor,(void*) NULL);
 
