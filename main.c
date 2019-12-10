@@ -15,11 +15,13 @@ sem_t hayDato;
 sem_t hayEspacio;
 
 int *buffer1;
-int tamBuffer=100;
+
 bool finFichero=false;
-int rango=3000000;
-int numConsumidores=0;
+int numMaxPosible=3000000;
+
 int* id;
+int *tamBuffer;
+int *numConsumidores;
 
 struct valoresConsumidor{
   //Creación de estructura con la que trabajaremos en cada Hilo consumidor
@@ -33,7 +35,7 @@ int cuartil;
 };
 
 void* productor(void *args){
-    int i=0;
+    
     int j=0;
     int dato;
     char palabra[10];
@@ -59,7 +61,7 @@ void* productor(void *args){
         if(dato!=0){
         buffer1[j]=dato;
         sem_post(&hayDato);
-        j=(j+1)%tamBuffer;
+        j=(j+1)%*tamBuffer;
         dato=0;
         //sem_wait(&hayEspacio);
         }
@@ -72,7 +74,7 @@ void* productor(void *args){
     }
     
     // for para ver el contenido del buffer
-    for (int j=0;j<tamBuffer;j++){
+    for (int j=0;j<*tamBuffer;j++){
     printf("%d\n",buffer1[j]);
     } 
     fclose(file);
@@ -80,25 +82,27 @@ void* productor(void *args){
     pthread_exit(0);
 };
 void* consumidor(void* arg){
-  int *z = (int *)arg;
-  rango=(int)z*rango;
+  int *id = (int *)arg;
+  int rango= numMaxPosible/(*numConsumidores);
+  int rango_down=*id*rango;
+  int rango_up=((*id +1)*rango )-1;
+  
   int suma=0;
   int  max=0;
   int  min=0;
   int media=0;;
   int i=0;
+
+
   while(true){
     sem_wait(&hayDato);
     //para saber si el valor tratado esta dentro de nuestro rango
     sem_wait(&mutex_Buffer);
     int datob=buffer1[i];
     sem_post(&mutex_Buffer);
-    if (datob<(rango-1)){
-    //por si solo se recorre una vez
-        if(i==0){
-        max=datob;
-        min=datob;
-        }
+
+    if(rango_down<=datob<=rango_up){
+    
       suma = suma + datob;
       if(datob>max){
         max=datob;
@@ -106,10 +110,16 @@ void* consumidor(void* arg){
       if(datob<min && (min!=0)){
         min=datob;
       }
+      media=suma/(*tamBuffer/(*numConsumidores));
+
+      i=(i+1)%*tamBuffer;
+      sem_post(&hayEspacio);
+    }else {
+      sem_post(&hayDato);
     }
-media=suma/(tamBuffer/numConsumidores);
-}
-sem_post(&hayEspacio);
+  }
+  
+
   printf("El max es:%d\n",max);
   printf("La suma es:%d\n",suma);
   printf("La media es:%d\n",media);
@@ -117,47 +127,48 @@ sem_post(&hayEspacio);
   pthread_exit(0);
 }
 int main(int argc, char* argv[]) {
-  int tamBuffer= atoi(argv[3]);
-  int numConsumidores=atoi(argv[4]);
-  /*
-  if(tamBuffer<1){
+  *tamBuffer= atoi(argv[3]);
+ 
+  *numConsumidores=atoi(argv[4]);
+  
+  if(*tamBuffer<1){
     printf("El tamaño del buffer introducido es incorrecto");
     return 0;
   }
  
-  if(numConsumidores<1){
+  if(*numConsumidores<1){
     printf("El numero de consumidores introducido es incorrecto");
     return 0;
   }
-  */
-  numConsumidores=1;
-  rango = rango/numConsumidores;
+  
+  
+  
    //Memoria dinámica,
-  buffer1=(int*)malloc(tamBuffer*sizeof(int));
+  buffer1=(int*)malloc(*tamBuffer*sizeof(int));
   
     //iniciador hilo
     pthread_t productorhilo;
     pthread_t consumidorhilo;
   //iniciador de semaforo, esto me lo dijo el profe así que será así.
-    sem_init(&hayEspacio,0,tamBuffer);
+    sem_init(&hayEspacio,0,*tamBuffer);
     sem_init(&hayDato,0,0);
     sem_init(&mutex_Buffer,0,1);
 
     //creador hilo
   
-  int id[numConsumidores];
-  for(int i=0;i<numConsumidores;i++){
+  int id[*numConsumidores];
+  for(int i=0;i<*numConsumidores;i++){
     id[i]=i;
   }
     pthread_create(&productorhilo,NULL,productor,(void*)NULL);
    
 
-  for(int i=0;i<numConsumidores;i++){
+  for(int i=0;i<*numConsumidores;i++){
     pthread_create(&consumidorhilo,NULL,consumidor,(void*)&id[i]);
   }
 
     pthread_join(productorhilo,NULL);
-    //pthread_join(consumidorhilo,NULL);
+    pthread_join(consumidorhilo,NULL);
     return (0);
 };
 
