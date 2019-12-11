@@ -19,7 +19,7 @@ int *buffer1;
 bool finFichero=false;
 int numMaxPosible=3000000;
 
-int* id;
+
 int *tamBuffer;
 int *numConsumidores;
 char nombreFich;
