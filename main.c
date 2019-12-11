@@ -1,6 +1,7 @@
 //Trabajo realizado por:
 //Diego Fraile Villa - 12421290W
 //Gonzalo Calvo Sanz - 71186449T
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
@@ -16,13 +17,11 @@ sem_t hayEspacio;
 
 int *buffer1;
 
-bool finFichero=false;
 int numMaxPosible=3000000;
-
 
 int tamBuffer;
 int numConsumidores;
-char nombreFich;
+char *nombreFich;
 
 struct valoresConsumidor{
     //Creación de estructura con la que trabajaremos en cada Hilo consumidor
@@ -36,37 +35,44 @@ struct valoresConsumidor{
 };
 
 void *productor(void *args){
-
+    char *fichero;
+    fichero=nombreFich;
     int j=0;
-    int dato;
+    int dato=0;
     char palabra[10];
-
+    char caracter;
     FILE *file;
-    file=fopen(&nombreFich,"r");
-    /*if(file== NULL){
+    //"C:\\Users\\CLION\\untitled\\numeros.dat"
+    file=fopen(fichero,"r");
+    if(file== NULL) {
         printf("No se ha podido encontrar el fichero");
-        exit(1);
-    }*/
-
+        exit(-1);
+    }
     while(feof(file)!=1){
-        sem_wait(&hayEspacio);
-        fscanf(file,"%c",palabra);
+
+        caracter=fgetc(file);
+
         //if((strcmp(palabra,"d")==0)||(strcmp(palabra,"d")==0))
-        if((isdigit(palabra))==0){ //quitamos los caracteres problematicos
+        if(((isdigit((int)caracter))==0)&&((isdigit((int)caracter))!=0)&&(caracter!='\n')){
+            //quitamos los caracteres problematicos
         }else{
-            int numero =atoi(palabra);    //para transformar de char a int
-            dato = dato + numero;
-            if((strcmp(palabra,"\n")==0)){
+
+            int numero = caracter-'0';    //para transformar de char a int
+            if((caracter=='\n')){
                 //si es el final de linea dividimos entre 10 para tener el numero que hay en esa linea y lo guardamos en nuestro buffer
                 dato=dato/10;
                 if(dato!=0){
+                    sem_wait(&hayEspacio);
+                    //sem_wait(&mutex_Buffer);
                     buffer1[j]=dato;
+                    //sem_post(&mutex_Buffer);
                     sem_post(&hayDato);
                     j=(j+1)%tamBuffer;
                     dato=0;
                     //sem_wait(&hayEspacio);
                 }
             }else{
+                dato = dato + numero;
                 dato=dato*10; //para escribir bien el numero multiplicamos por 10 para sumarle el siguiente luego
 
             }
@@ -75,11 +81,10 @@ void *productor(void *args){
     }
 
     // for para ver el contenido del buffer
-    for (int j=0;j<tamBuffer;j++){
+  /*  for (int j=0;j<tamBuffer;j++){
         printf("%d\n",buffer1[j]);
-    }
+    }*/
     fclose(file);
-    finFichero=true;
     pthread_exit(0);
 }
 void* consumidor(void* arg){
@@ -90,23 +95,23 @@ void* consumidor(void* arg){
 
     int suma=0;
     int  max=0;
-    int  min=0;
-    int media=0;;
+    int  min=3000000;
+    int media=0;
     int i=0;
-
-
+    int datob=0;
+    int numeroDatosLeidos=0;
     while(true){
         sem_wait(&hayDato);
         //para saber si el valor tratado esta dentro de nuestro rango
         sem_wait(&mutex_Buffer);
-        int datob=buffer1[i];
+        datob=buffer1[i];
         sem_post(&mutex_Buffer);
 
         if(datob== '\0')
             break;
 
-        if(rango_down<=datob<=rango_up){
-
+        if((rango_down<=datob)&&(datob<=rango_up)){
+            numeroDatosLeidos++;
             suma = suma + datob;
             if(datob>max){
                 max=datob;
@@ -114,27 +119,27 @@ void* consumidor(void* arg){
             if(datob<min && (min!=0)){
                 min=datob;
             }
-            media=suma/(tamBuffer/(numConsumidores));
 
-            i=(i+1)%tamBuffer;
             sem_post(&hayEspacio);
         }else {
             sem_post(&hayDato);
         }
+        i=(i+1)%tamBuffer;
     }
+    media=suma/numeroDatosLeidos;
 
 
-    printf("El max es:%d\n",max);
-    printf("La suma es:%d\n",suma);
-    printf("La media es:%d\n",media);
-    printf("El min es:%d\n",min);
+    printf("El max del %i es:%d\n",id,max);
+    printf("La suma del %i es:%d\n",id,suma);
+    printf("La media del %i es:%d\n",id,media);
+    printf("El min del %i es:%d\n",id,min);
     pthread_exit(0);
 }
 int main(int argc, char* argv[]) {
-    nombreFich =*argv[2];
-    tamBuffer= atoi(argv[3]);
-
-    numConsumidores=atoi(argv[4]);
+    char *fichero= argv[1];
+    nombreFich =fichero;
+    sscanf(argv[3],"%d",&tamBuffer);
+    sscanf(argv[4],"%d",&numConsumidores);
 
     if(tamBuffer<1){
         printf("El tamaño del buffer introducido es incorrecto");
@@ -146,14 +151,12 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-
-
     //Memoria dinámica,
     buffer1=(int*)malloc(tamBuffer*sizeof(int));
 
     //iniciador hilo
     pthread_t productorhilo;
-    pthread_t consumidorhilo;
+    pthread_t consumidorhilo[numConsumidores];
     //iniciador de semaforo, esto me lo dijo el profe así que será así.
     sem_init(&hayEspacio,0,tamBuffer);
     sem_init(&hayDato,0,0);
@@ -169,14 +172,13 @@ int main(int argc, char* argv[]) {
 
 
     for(int i=0;i<numConsumidores;i++){
-        pthread_create(&consumidorhilo,NULL,consumidor,(void*)&id[i]);
+        pthread_create(&consumidorhilo[i],NULL,consumidor,(void*)&id[i]);
     }
 
     pthread_join(productorhilo,NULL);
     for(int i=0;i<numConsumidores;i++){
-        pthread_join(consumidorhilo,NULL);
+        pthread_join(consumidorhilo[i],NULL);
     }
 
     return (0);
 }
-
