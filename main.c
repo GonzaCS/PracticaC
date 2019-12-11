@@ -34,7 +34,7 @@ int mediana;
 int cuartil;
 };
 
-void* productor(void *args){
+void *productor(void *args){
     
     int j=0;
     int dato;
@@ -80,7 +80,7 @@ void* productor(void *args){
     fclose(file);
     finFichero=true;
     pthread_exit(0);
-};
+}
 void* consumidor(void* arg){
   int *id = (int *)arg;
   int rango= numMaxPosible/(*numConsumidores);
@@ -168,7 +168,10 @@ int main(int argc, char* argv[]) {
   }
 
     pthread_join(productorhilo,NULL);
-    pthread_join(consumidorhilo,NULL);
+    for(int i=0;i<*numConsumidores;i++){
+      pthread_join(consumidorhilo,NULL);
+    }
+    
     return (0);
-};
+}
 
