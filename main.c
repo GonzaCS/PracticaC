@@ -22,6 +22,7 @@ int numMaxPosible=3000000;
 int* id;
 int *tamBuffer;
 int *numConsumidores;
+char nombreFich;
 
 struct valoresConsumidor{
   //Creación de estructura con la que trabajaremos en cada Hilo consumidor
@@ -39,9 +40,9 @@ void *productor(void *args){
     int j=0;
     int dato;
     char palabra[10];
-    char nombre[]= "numeros.dat";
+    
     FILE *file;
-    file=fopen(nombre,"r");
+    file=fopen(&nombreFich,"r");
     if(file== NULL){
       printf("No se ha podido encontrar el");
       exit(1);
@@ -127,6 +128,7 @@ void* consumidor(void* arg){
   pthread_exit(0);
 }
 int main(int argc, char* argv[]) {
+  nombreFich =*argv[2];
   *tamBuffer= atoi(argv[3]);
  
   *numConsumidores=atoi(argv[4]);
