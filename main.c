@@ -152,6 +152,7 @@ void* consumidor(void* arg){
     valCons.numerodatos=numeroDatosLeidos;
     valCons.finish=true;
     valores[ident]=valCons;
+    printf("ha terminado el %d consumidor", ident);
     sem_post(&consumListo);
     pthread_exit(0);
 }
@@ -162,35 +163,31 @@ void *lector(void* args){
         printf("No se ha podido encontrar el fichero");
         exit(-1);
     }
-    struct valoresConsumidor valLector;
     while(true) {
 
         sem_wait(&consumListo);
-
+        sem_wait(&mutexLector);
 
         for (int i = 0; i < numConsumidores; i++) {
-            sem_wait(&mutexLector);
-            valLector = valores[i];
-            sem_post(&mutexLector);
-            if (valLector.finish == true) {
-                fprintf(fichSalida, "====== RANGO DEL HILO %d [%d]-[%d]\n", i, valLector.rango_down,
-                        valLector.rango_up);
-                fprintf(fichSalida, "El numero de datos del hilo %d es: %d\n", i, valLector.numerodatos);
-                fprintf(fichSalida, "El maximo del hilo %d es:%d\n", i, valLector.maximodato);
-                fprintf(fichSalida, "El minimo del hilo %d es:%d\n", i, valLector.minimodato);
-                fprintf(fichSalida, "La suma total del hilo  %d es:%d\n", i, valLector.sumatotal);
-                fprintf(fichSalida, "La media del hilo %d es:%12.6f\n", i, valLector.media);
-                fprintf(fichSalida, "\n\n");
-                valLector.finish = false;
 
+
+
+            if (valores[i].finish == true) {
+                fprintf(fichSalida, "====== RANGO DEL HILO %d [%d]-[%d]\n", i, valores[i].rango_down,valores[i].rango_up);
+                fprintf(fichSalida, "El numero de datos del hilo %d es: %d\n", i, valores[i].numerodatos);
+                fprintf(fichSalida, "El maximo del hilo %d es:%d\n", i, valores[i].maximodato);
+                fprintf(fichSalida, "El minimo del hilo %d es:%d\n", i, valores[i].minimodato);
+                fprintf(fichSalida, "La suma total del hilo  %d es:%d\n", i, valores[i].sumatotal);
+                fprintf(fichSalida, "La media del hilo %d es:%12.6f\n", i, valores[i].media);
+                fprintf(fichSalida, "\n\n");
+                valores[i].finish = false;
                 fflush(fichSalida);
 
                 numleidos++;
+                break;
             }
-
         }
-
-
+        sem_post(&mutexLector);
         if (numleidos == numConsumidores){
             break;
         }
