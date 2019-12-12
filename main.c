@@ -121,8 +121,8 @@ void* consumidor(void* arg){
         sem_post(&mutex_Buffer);
 
         if(datob== -1) {
-            sem_post(&hayDato);
-            break;
+         sem_post(&hayDato);
+         break;
         }
 
         if((rango_down<=datob)&&(datob<=rango_up)){
@@ -141,18 +141,39 @@ void* consumidor(void* arg){
         }
         i=(i+1)%tamBuffer;
     }
-    media=suma/numeroDatosLeidos;
+    if(numeroDatosLeidos!=0) {
+        media = (float) suma / (float) numeroDatosLeidos;
 
-    valCons.sumatotal=suma;
-    valCons.maximodato=max;
-    valCons.minimodato=min;
-    valCons.media=media;
-    valCons.rango_down=rango_down;
-    valCons.rango_up=rango_up;
-    valCons.numerodatos=numeroDatosLeidos;
-    valCons.finish=true;
-    valores[ident]=valCons;
-    printf("ha terminado el %d consumidor", ident);
+        valCons.sumatotal = suma;
+        valCons.maximodato = max;
+        valCons.minimodato = min;
+        valCons.media = media;
+        valCons.rango_down = rango_down;
+        valCons.rango_up = rango_up;
+        valCons.numerodatos = numeroDatosLeidos;
+        valCons.finish = true;
+        valores[ident] = valCons;
+    }else{
+            valCons.sumatotal=0;
+            valCons.maximodato=0;
+            valCons.minimodato=0;
+            valCons.media=0;
+            valCons.rango_down=rango_down;
+            valCons.rango_up=rango_up;
+            valCons.numerodatos=numeroDatosLeidos;
+            valCons.finish=true;
+            valores[ident]=valCons;
+    }
+    //printf("ha terminado el %d consumidor", ident);
+    /*
+    printf("====== RANGO DEL HILO %d [%d]-[%d]\n", ident, valCons.rango_down,valCons.rango_up);
+    printf( "El numero de datos del hilo %d es: %d\n", ident, valCons.numerodatos);
+    printf( "El maximo del hilo %d es:%d\n", ident, valCons.maximodato);
+    printf("El minimo del hilo %d es:%d\n", ident, valCons.minimodato);
+    printf( "La suma total del hilo  %d es:%d\n", ident, valCons.sumatotal);
+    printf("La media del hilo %d es:%12.6f\n", ident, valCons.media);
+    printf( "\n\n");
+    */
     sem_post(&consumListo);
     pthread_exit(0);
 }
