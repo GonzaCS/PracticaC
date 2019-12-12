@@ -21,7 +21,7 @@ int *buffer1;
 
 
 int numMaxPosible=3000000;
-
+int indexB=0;
 int tamBuffer;
 int numConsumidores;
 char *nombreFich;
@@ -109,7 +109,6 @@ void* consumidor(void* arg){
     int  max=0;
     int  min=3000000;
     float media=0;
-    int i=0;
     int datob=0;
     int numeroDatosLeidos=0;
     valCons.finish=false;
@@ -117,15 +116,20 @@ void* consumidor(void* arg){
         sem_wait(&hayDato);
         //para saber si el valor tratado esta dentro de nuestro rango
         sem_wait(&mutex_Buffer);
-        datob=buffer1[i];
-        sem_post(&mutex_Buffer);
+        datob=buffer1[indexB];
+
 
         if(datob== -1) {
+         sem_post(&mutex_Buffer);
          sem_post(&hayDato);
          break;
         }
 
         if((rango_down<=datob)&&(datob<=rango_up)){
+            indexB=(indexB + 1)%tamBuffer;
+            sem_post(&mutex_Buffer);
+            sem_post(&hayEspacio);
+
             numeroDatosLeidos++;
             suma = suma + datob;
             if(datob>max){
@@ -135,11 +139,12 @@ void* consumidor(void* arg){
                 min=datob;
             }
 
-            sem_post(&hayEspacio);
+
         }else {
+            sem_post(&mutex_Buffer);
             sem_post(&hayDato);
         }
-        i=(i+1)%tamBuffer;
+
     }
     if(numeroDatosLeidos!=0) {
         media = (float) suma / (float) numeroDatosLeidos;
@@ -164,16 +169,6 @@ void* consumidor(void* arg){
             valCons.finish=true;
             valores[ident]=valCons;
     }
-    //printf("ha terminado el %d consumidor", ident);
-    /*
-    printf("====== RANGO DEL HILO %d [%d]-[%d]\n", ident, valCons.rango_down,valCons.rango_up);
-    printf( "El numero de datos del hilo %d es: %d\n", ident, valCons.numerodatos);
-    printf( "El maximo del hilo %d es:%d\n", ident, valCons.maximodato);
-    printf("El minimo del hilo %d es:%d\n", ident, valCons.minimodato);
-    printf( "La suma total del hilo  %d es:%d\n", ident, valCons.sumatotal);
-    printf("La media del hilo %d es:%12.6f\n", ident, valCons.media);
-    printf( "\n\n");
-    */
     sem_post(&consumListo);
     pthread_exit(0);
 }
@@ -190,8 +185,6 @@ void *lector(void* args){
         sem_wait(&mutexLector);
 
         for (int i = 0; i < numConsumidores; i++) {
-
-
 
             if (valores[i].finish == true) {
                 fprintf(fichSalida, "====== RANGO DEL HILO %d [%d]-[%d]\n", i, valores[i].rango_down,valores[i].rango_up);
