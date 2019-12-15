@@ -39,7 +39,14 @@ struct valoresConsumidor{
     bool finish;
 };
 
+struct tipoNodoLista{
+    //Estructura para el cuartil y la mediana
+       int m_dato;
+       struct tipoNodo* msiguiente;
+};
+
 struct valoresConsumidor *valores;
+struct tipoNodoLista *lista;
 
 void *productor(void *args){
     char *fichero;
@@ -232,10 +239,13 @@ int main(int argc, char* argv[]) {
         printf("El numero de consumidores introducido es incorrecto");
         return 0;
     }
-
+    
   //Memoria dinámica.
     buffer1=(int*)malloc(tamBuffer*sizeof(int));
     valores=(struct valoresConsumidor*)malloc(numConsumidores*sizeof(struct valoresConsumidor));
+   //memoria dinamica para las listas ordenadas sin implementar aún.
+    
+    lista=(struct tipoNodoLista*)malloc(sizeof(struct tipoNodoLista));
 
 
   //iniciador hilo
