@@ -41,8 +41,8 @@ struct valoresConsumidor{
 
 struct tipoNodoLista{
     //Estructura para el cuartil y la mediana
-       int m_dato;
-       struct tipoNodo* msiguiente;
+    int m_dato;
+    struct tipoNodo* msiguiente;
 };
 
 struct valoresConsumidor *valores;
@@ -61,7 +61,7 @@ void *productor(void *args){
         exit(-1);
     }
     while(feof(file)!=1){
-    //cogemos caracter a caracter de la linea del fichero
+        //cogemos caracter a caracter de la linea del fichero
         caracter=fgetc(file);
         if(((isdigit((int)caracter))==0)&&(caracter!='\n')){
             //quitamos los caracteres problematicos es decir las letras y cuando es un final de linea
@@ -111,7 +111,7 @@ void* consumidor(void* arg){
     float media=0;
     int datob=0;
     int numeroDatosLeidos=0;
-    //finalizador booleano para saber si ha terminado todo los datos de su rango para luego usarlo en el lector
+    //finalizador booleano para saber si ha terminado todos los datos de su rango para luego usarlo en el lector
     valCons.finish=false;
     while(true){
         sem_wait(&hayDato);
@@ -120,9 +120,9 @@ void* consumidor(void* arg){
 
 
         if(datob== -1) {
-         sem_post(&mutex_Buffer);
-         sem_post(&hayDato);
-         break;
+            sem_post(&mutex_Buffer);
+            sem_post(&hayDato);
+            break;
         }
 
         if((rango_down<=datob)&&(datob<=rango_up)){
@@ -162,15 +162,15 @@ void* consumidor(void* arg){
         valCons.finish = true;
         valores[ident] = valCons;
     }else{
-            valCons.sumatotal=0;
-            valCons.maximodato=0;
-            valCons.minimodato=0;
-            valCons.media=0;
-            valCons.rango_down=rango_down;
-            valCons.rango_up=rango_up;
-            valCons.numerodatos=numeroDatosLeidos;
-            valCons.finish=true;
-            valores[ident]=valCons;
+        valCons.sumatotal=0;
+        valCons.maximodato=0;
+        valCons.minimodato=0;
+        valCons.media=0;
+        valCons.rango_down=rango_down;
+        valCons.rango_up=rango_up;
+        valCons.numerodatos=numeroDatosLeidos;
+        valCons.finish=true;
+        valores[ident]=valCons;
     }
     //semaforo P para advertir al lector que ya puede leer del consumidor.
     sem_post(&consumListo);
@@ -180,7 +180,7 @@ void* consumidor(void* arg){
 void *lector(void* args){
     //variable local para el numero de lectores
     int numleidos=0;
-    
+
     if(fichSalida== NULL) {
         printf("No se ha podido encontrar el fichero");
         exit(-1);
@@ -239,20 +239,20 @@ int main(int argc, char* argv[]) {
         printf("El numero de consumidores introducido es incorrecto");
         return 0;
     }
-    
-  //Memoria dinámica.
+
+    //Memoria dinámica.
     buffer1=(int*)malloc(tamBuffer*sizeof(int));
     valores=(struct valoresConsumidor*)malloc(numConsumidores*sizeof(struct valoresConsumidor));
-   //memoria dinamica para las listas ordenadas sin implementar aún.
-    
+    //memoria dinamica para las listas ordenadas sin implementar aún.
+
     lista=(struct tipoNodoLista*)malloc(sizeof(struct tipoNodoLista));
 
 
-  //iniciador hilo
+    //iniciador hilo
     pthread_t productorhilo;
     pthread_t consumidorhilo[numConsumidores];
     pthread_t lectorhilo;
-  //iniciadores de los diferentes semáforos.
+    //iniciadores de los diferentes semáforos.
     sem_init(&hayEspacio,0,tamBuffer);
     sem_init(&hayDato,0,0);
     sem_init(&mutex_Buffer,0,1);
@@ -263,7 +263,7 @@ int main(int argc, char* argv[]) {
     for(int i=0;i<numConsumidores;i++){
         id[i]=i;
     }
-     //creación de hilos
+    //creación de hilos
     pthread_create(&productorhilo,NULL,productor,(void*)NULL);
     pthread_create(&lectorhilo,NULL,lector,(void*)NULL);
 
@@ -278,6 +278,13 @@ int main(int argc, char* argv[]) {
     for(int i=0;i<numConsumidores;i++){
         pthread_join(consumidorhilo[i],NULL);
     }
-    
+
+    sem_destroy(&hayEspacio);
+    sem_destroy(&hayDato);
+    sem_destroy(&mutex_Buffer);
+    sem_destroy(&consumListo);
+    sem_destroy(&mutexLector);
+
     return (0);
 }
+
