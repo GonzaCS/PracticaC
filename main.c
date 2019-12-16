@@ -32,7 +32,7 @@ struct valoresConsumidor{
     int numerodatos;
     int maximodato;
     int minimodato;
-    int sumatotal;
+    double sumatotal;
     int rango_up;
     int rango_down;
     float media;
@@ -105,7 +105,7 @@ void* consumidor(void* arg){
     // creación de estructura con los valores de cada consumidor
     struct valoresConsumidor valCons;
     //variables locales que se usan para consumidor
-    int suma=0;
+    double suma=0.0;
     int  max=0;
     int  min=3000000;
     float media=0;
