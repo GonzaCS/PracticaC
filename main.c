@@ -32,7 +32,7 @@ struct valoresConsumidor{
     int numerodatos;
     int maximodato;
     int minimodato;
-    double sumatotal;
+    float sumatotal;
     int rango_up;
     int rango_down;
     float media;
@@ -105,7 +105,7 @@ void* consumidor(void* arg){
     // creación de estructura con los valores de cada consumidor
     struct valoresConsumidor valCons;
     //variables locales que se usan para consumidor
-    double suma=0.0;
+    float suma=0;
     int  max=0;
     int  min=3000000;
     float media=0;
@@ -196,7 +196,7 @@ void *lector(void* args){
                 fprintf(fichSalida, "El numero de datos del hilo %d es: %d\n", i, valores[i].numerodatos);
                 fprintf(fichSalida, "El maximo del hilo %d es:%d\n", i, valores[i].maximodato);
                 fprintf(fichSalida, "El minimo del hilo %d es:%d\n", i, valores[i].minimodato);
-                fprintf(fichSalida, "La suma total del hilo  %d es:%d\n", i, valores[i].sumatotal);
+                fprintf(fichSalida, "La suma total del hilo  %d es:%12.6f\n", i, valores[i].sumatotal);
                 fprintf(fichSalida, "La media del hilo %d es:%12.6f\n", i, valores[i].media);
                 fprintf(fichSalida, "\n\n");
                 //cambiamos la variable booleana a falso, ya que ha acabado de escribir.
