@@ -278,7 +278,7 @@ int main(int argc, char* argv[]) {
     for(int i=0;i<numConsumidores;i++){
         pthread_join(consumidorhilo[i],NULL);
     }
-
+//liberamos la memoria usada por los semaforos.
     sem_destroy(&hayEspacio);
     sem_destroy(&hayDato);
     sem_destroy(&mutex_Buffer);
